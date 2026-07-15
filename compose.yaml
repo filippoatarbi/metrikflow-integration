@@ -1,0 +1,18 @@
+services:
+  hop-run:
+    image: apache/hop:2.18.1
+
+    environment:
+      HOP_COMMAND: run
+      HOP_PROJECT_NAME: metrikflow
+      HOP_PROJECT_FOLDER: /project
+      HOP_CONFIG_FOLDER: /hop-config
+      HOP_AUDIT_FOLDER: /runtime/audit
+
+    volumes:
+      - ./:/project
+      - ./config:/hop-config
+      - ./runtime:/runtime
+
+    working_dir: /project
+    restart: "no"

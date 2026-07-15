@@ -1,16 +1,75 @@
-.venv/
+# Apache Hop local central configuration
+config/*
+!config/.gitkeep
+!config/*.example.json
+!config/*.example.yaml
+!config/*.example.yml
+!config/*.example.toml
+
+# Runtime data
+runtime/output/*
+runtime/archive/*
+runtime/rejected/*
+runtime/logs/*
+runtime/state/*
+runtime/audit/*
+
+!runtime/output/.gitkeep
+!runtime/archive/.gitkeep
+!runtime/rejected/.gitkeep
+!runtime/logs/.gitkeep
+!runtime/state/.gitkeep
+!runtime/audit/.gitkeep
+
+# JDBC drivers
+drivers/*
+!drivers/.gitkeep
+
+# Secrets and local environment files
 .env
+.env.*
+*.env
+*.secrets
+*.secret
+secrets/
+
+# Private keys and certificates
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# Apache Hop temporary and local files
+*.tmp
+*.temp
+*.lock
+*.lck
+*.log
+
+# Python leftovers from the original scaffold
+.venv/
+venv/
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-output/*
-archive/*
-logs/*
-state/*.db
-
-!output/.gitkeep
-!archive/.gitkeep
-!logs/.gitkeep
-!state/.gitkeep
-
+# IDE configuration
 .vscode/
+.idea/
+*.code-workspace
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux/editor temporary files
+*~
+*.swp
+*.swo
