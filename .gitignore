@@ -1,0 +1,16 @@
+.venv/
+.env
+__pycache__/
+*.py[cod]
+
+output/*
+archive/*
+logs/*
+state/*.db
+
+!output/.gitkeep
+!archive/.gitkeep
+!logs/.gitkeep
+!state/.gitkeep
+
+.vscode/
