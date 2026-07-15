@@ -11,7 +11,7 @@ services:
 
     volumes:
       - ./:/project
-      - ./config:/hop-config
+      - ./config/docker:/hop-config
       - ./runtime:/runtime
 
     working_dir: /project
