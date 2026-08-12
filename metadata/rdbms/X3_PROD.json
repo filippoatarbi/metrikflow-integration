@@ -12,10 +12,10 @@
       "usingIntegratedSecurity": false,
       "accessType": 0,
       "sshTunnelUsername": "",
-      "hostname": "ARBI-X3",
-      "password": "Encrypted 2be98afc86aa7f2e4cb79ce64d795aac8",
+      "hostname": "${X3_SQL_HOST}",
+      "password": "${X3_SQL_PASSWORD}",
       "pluginName": "MS SQL Server (Native)",
-      "port": "53698",
+      "port": "${X3_SQL_PORT}",
       "sshTunnelHost": "",
       "attributes": {
         "SUPPORTS_TIMESTAMP_DATA_TYPE": "Y",
@@ -32,7 +32,7 @@
       "sshTunnelPassphrase": "Encrypted ",
       "sshTunnelPassword": "Encrypted ",
       "sshTunnelPrivateKeyFile": "",
-      "username": "PROD"
+      "username": "${X3_SQL_USER}"
     }
   },
   "name": "X3_PROD"
