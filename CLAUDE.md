@@ -1,106 +1,224 @@
-# MetrikFlow Integration — Claude Code Instructions
+# MetrikFlow Integration — Claude Instructions
 
 ## Project purpose
 
-This repository contains a monthly Python batch integration that extracts ESG data from:
+This repository contains the Apache Hop ETL project used to prepare monthly
+data files for Metrikflow carbon-footprint reporting.
+
+Current and planned data sources include:
 
 - Sage X3 via SQL Server
-- CARL via REST APIs
 - RENTRI via REST APIs
+- CARL via REST APIs
+- other sources as required
 
-It validates and transforms the data into semicolon-separated CSV files and uploads them to an FTP or SFTP server.
+The primary output is a set of local CSV files conforming to Metrikflow
+import layouts.
 
-The software runs on Windows Server through Windows Task Scheduler.
+SFTP delivery is a later shared delivery phase.
+Local file generation, validation and troubleshooting come first.
 
-## Architectural constraints
+## Current technology
 
-Prefer simplicity, reliability and maintainability.
+- Apache Hop 2.18.1
+- Java 21 for Apache Hop
+- Windows development workstation
+- Git repository
+- Hop project: `metrikflow`
+- development environment: `development`
+- current integration branch: `migrate-to-apache-hop`
 
-Do not introduce:
+Apache Hop GUI is launched through:
 
+`scripts/start-hop-gui.ps1`
+
+Do not replace Apache Hop with Python or another ETL framework unless explicitly requested.
+
+## Architecture principles
+
+Prefer:
+
+- simplicity
+- reliability
+- maintainability
+- native Apache Hop capabilities
+- small reusable pipelines and workflows
+- explicit configuration
+- reproducible local output
+
+Avoid:
+
+- unnecessary custom code
+- unnecessary frameworks
 - microservices
-- web applications
-- REST APIs
-- containers unless explicitly requested
 - Kubernetes
 - Airflow
-- enterprise ETL platforms
-- unnecessary frameworks
-- unnecessary abstraction layers
+- web applications
+- reinventing capabilities already provided by Apache Hop
 
-This is a monthly batch process, not a continuously running service.
+This is a monthly batch integration.
 
-## Runtime
+## Repository areas
 
-- Python 3.14 during initial development
-- Windows and PowerShell
-- Entry point: `python -m app.main`
-- Git branch: `main`
+- `pipelines/` — Apache Hop pipelines (`.hpl`)
+- `workflows/` — Apache Hop workflows (`.hwf`)
+- `sql/` — SQL used by source extractions
+- `metadata/` — project metadata
+- `docs/` — technical and functional documentation
+- `scripts/` — project helper scripts
+- `runtime/output/` — generated CSV files
+- `runtime/logs/` — execution logs
+- `runtime/archive/` — retained historical output when applicable
+- `runtime/rejected/` — rejected/invalid output
 
-Do not change the supported Python version without explicit approval.
+## Secrets
 
-## Code organization
+Never read, expose, print, copy, commit or request secret values.
 
-Each module must have a single responsibility:
+In particular:
 
-- `app/main.py`: batch orchestration
-- `app/config.py`: configuration loading and validation
-- `app/x3.py`: Sage X3 extraction
-- `app/carl.py`: CARL API integration
-- `app/rentri.py`: RENTRI API integration
-- `app/csv_export.py`: CSV generation
-- `app/ftp_upload.py`: FTP/SFTP transfer
-- `app/state.py`: SQLite execution state
-- `sql/`: external SQL query files
+- `secrets/local.env` contains Sage X3 credentials
+- private keys
+- certificates
+- `.p12` / `.pfx`
+- API tokens
+- passwords
 
-Do not place SQL queries directly inside Python unless they are trivial.
+must remain outside Claude-visible working material whenever possible.
 
-## Coding rules
+Do not add secrets to Git.
 
-- Use explicit, readable Python.
-- Prefer standard-library solutions where reasonable.
-- Avoid clever or speculative abstractions.
-- Use type hints.
-- Use `pathlib.Path` instead of manual path concatenation.
-- Use `logging`, never `print`, in application code.
-- Never log passwords, tokens, connection strings or personal data.
-- Every HTTP request must have an explicit timeout.
-- Retry only transient failures.
-- Fail clearly on authentication, validation and configuration errors.
-- Preserve the original exception context when raising application errors.
-- Write CSV files using UTF-8, semicolon separator and headers.
-- Write files to a temporary path before final atomic rename.
-- Generated data, logs, archives, databases and `.env` files must not be committed.
+## Git discipline
 
-## Change discipline
+Before modifying anything:
 
-Before modifying code:
-
-1. inspect the relevant files;
-2. explain the proposed change briefly;
-3. identify risks or assumptions;
+1. inspect the existing implementation;
+2. preserve existing conventions where reasonable;
+3. explain the intended change;
 4. make the smallest coherent change;
-5. run the relevant checks;
-6. show the resulting Git diff.
+5. validate the result;
+6. inspect the resulting diff.
 
-Do not commit, push, force-push, reset, delete files or rewrite Git history unless explicitly instructed.
+Do not:
 
-Do not install dependencies without explaining why they are needed.
+- commit
+- push
+- merge
+- reset
+- force-push
+- delete existing work
+- change branches
 
-Do not change unrelated files.
+unless explicitly instructed.
 
-## Testing
+The working tree may contain unfinished local work.
+Never assume an untracked file can be deleted.
 
-For every non-trivial feature:
+## Current X3 status
 
-- add or update tests;
-- test success and failure paths;
-- avoid real calls to production systems;
-- mock external APIs and file transfers;
-- use temporary directories for filesystem tests.
+Apache Hop connectivity to Sage X3 SQL Server has already been validated.
 
-## Current priority
+Existing known pipelines include:
 
-The current priority is establishing the development environment and creating a minimal executable project skeleton.
+- `hello-hop.hpl`
+- `x3-connection-test.hpl`
 
-Do not implement X3, CARL, RENTRI or FTP integration until explicitly requested.
+There is also provisional work for:
+
+- `x3-s31-purchased-goods.hpl`
+
+X3 SQL supplied by users/colleagues may be provisional.
+Do not invent accounting filters or business rules.
+
+Monthly date windows should prefer half-open intervals:
+
+`>= PERIOD_FROM`
+`< PERIOD_TO`
+
+where `PERIOD_TO` is the first day of the following month.
+
+## Current RENTRI priority
+
+RENTRI is currently the highest-priority unknown integration.
+
+Do not assume RENTRI semantics from field names.
+
+For RENTRI work:
+
+1. study official RENTRI documentation;
+2. verify authentication and endpoints;
+3. obtain and preserve representative API responses;
+4. document the mapping;
+5. only then implement Apache Hop extraction;
+6. validate local files before automating delivery.
+
+Postman is a development and diagnostic tool, not part of the final production ETL.
+
+The intended RENTRI flow is:
+
+RENTRI API
+→ raw response
+→ normalized staging data
+→ mapping/aggregation
+→ Metrikflow CSV
+→ local validation
+→ SFTP delivery later
+
+## Metrikflow waste CSV layout
+
+The required waste output currently contains:
+
+- CER CODE
+- Waste Category
+- Waste Quantity
+- Unit:Waste Quantity
+- Treatment name 1
+- Treatment rate percentage 1
+- Treatment name 2
+- Treatment rate percentage 2
+- Treatment name 3
+- Treatment rate percentage 3
+
+Do not invent Waste Category mappings or treatment mappings.
+Unknown mappings must be explicitly documented as unresolved.
+
+## Output policy
+
+Generated CSV files are intentionally retained locally for:
+
+- validation
+- troubleshooting
+- auditability
+- comparison with source data
+- test delivery to Metrikflow by email
+
+Do not automatically delete generated files after processing.
+
+Prefer:
+
+- UTF-8
+- semicolon-separated CSV
+- headers
+- deterministic filenames
+- explicit validation before delivery
+
+## SFTP
+
+SFTP is deliberately deferred.
+
+It will eventually be implemented as a shared delivery component reused by
+X3, RENTRI, CARL and other Metrikflow flows.
+
+Do not implement or modify SFTP unless explicitly requested.
+
+## Change philosophy
+
+Keep it simple.
+
+Do not reinvent the wheel.
+
+Prefer a standard Apache Hop transform or workflow action over custom scripts
+when it satisfies the requirement.
+
+When uncertain about source-system semantics, stop and document the uncertainty
+rather than inventing an answer.
